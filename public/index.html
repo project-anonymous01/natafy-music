@@ -1,0 +1,1750 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Natafy</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #000000;
+  --bg-1: #0a0a0a;
+  --bg-2: #111111;
+  --bg-3: #1a1a1a;
+  --bg-4: #222222;
+  --surface: rgba(255,255,255,0.05);
+  --surface-hover: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.07);
+  --text: #ffffff;
+  --text-2: rgba(255,255,255,0.55);
+  --text-3: rgba(255,255,255,0.28);
+  --accent: #fa2d48;
+  --accent-soft: rgba(250,45,72,0.1);
+  --red: #ef4444;
+  --green: #22c55e;
+  --player-h: 86px;
+  --sidebar-w: 240px;
+  --r: 12px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html { height: 100%; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button { border: none; background: none; cursor: pointer; font-family: inherit; color: inherit; }
+a { text-decoration: none; color: inherit; }
+img { display: block; }
+input { font-family: inherit; }
+
+::-webkit-scrollbar { width: 0px; }
+
+/* ── KEYFRAMES ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }
+@keyframes eq1 { 0%,100%{height:4px} 50%{height:16px} }
+@keyframes eq2 { 0%,100%{height:10px} 33%{height:4px} 66%{height:18px} }
+@keyframes eq3 { 0%,100%{height:14px} 40%{height:5px} 70%{height:20px} }
+@keyframes shimmer {
+  from { background-position: -400px 0; }
+  to   { background-position: 400px 0; }
+}
+
+/* ── ONBOARDING ── */
+#ob {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.ob-top {
+  padding: 48px 48px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.ob-wordmark {
+  font-size: 20px; font-weight: 700; letter-spacing: -0.5px;
+  color: var(--text);
+}
+.ob-steps {
+  display: flex; gap: 6px; align-items: center;
+}
+.ob-step-pip {
+  height: 3px; width: 20px; border-radius: 2px;
+  background: var(--bg-4);
+  transition: all 0.35s var(--ease);
+}
+.ob-step-pip.on { background: var(--accent); width: 32px; }
+
+.ob-body {
+  flex: 1; overflow-y: auto; padding: 40px 48px 160px;
+}
+.ob-eyebrow {
+  font-size: 12px; font-weight: 600; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--text-3);
+  margin-bottom: 10px;
+}
+.ob-h {
+  font-size: clamp(26px, 3.5vw, 40px);
+  font-weight: 700; letter-spacing: -1px; line-height: 1.1;
+  color: var(--text); margin-bottom: 8px;
+}
+.ob-sub {
+  font-size: 15px; color: var(--text-2); line-height: 1.5; margin-bottom: 36px;
+}
+.ob-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+.ob-chip {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 9px; padding: 14px 10px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.ob-chip:hover { background: var(--bg-3); border-color: rgba(255,255,255,0.12); }
+.ob-chip.sel {
+  background: rgba(250,45,72,0.08);
+  border-color: rgba(250,45,72,0.4);
+}
+.ob-chip img {
+  width: 52px; height: 52px; border-radius: 50%;
+  object-fit: cover; background: var(--bg-4);
+}
+.ob-chip-name {
+  font-size: 11px; font-weight: 500;
+  text-align: center; line-height: 1.3;
+  color: var(--text-2);
+}
+.ob-chip.sel .ob-chip-name { color: var(--text); }
+.ob-chip-check {
+  position: absolute; top: 7px; right: 7px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--accent); display: flex; align-items: center; justify-content: center;
+  opacity: 0; transform: scale(0.6);
+  transition: all 0.2s var(--spring);
+}
+.ob-chip.sel .ob-chip-check { opacity: 1; transform: scale(1); }
+
+.ob-footer {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  padding: 20px 48px 36px;
+  background: linear-gradient(transparent, var(--bg) 50%);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.ob-count { font-size: 13px; color: var(--text-3); }
+.ob-count b { color: var(--text-2); font-weight: 600; }
+.ob-actions { display: flex; gap: 10px; }
+.btn-ghost {
+  padding: 11px 20px; border-radius: 50px;
+  font-size: 14px; font-weight: 500;
+  color: var(--text-2); background: var(--bg-3);
+  transition: all 0.2s var(--ease);
+}
+.btn-ghost:hover { color: var(--text); background: var(--bg-4); }
+.btn-solid {
+  padding: 11px 24px; border-radius: 50px;
+  font-size: 14px; font-weight: 600;
+  color: #fff; background: var(--accent);
+  transition: all 0.2s var(--ease);
+}
+.btn-solid:hover { filter: brightness(1.08); }
+.btn-solid:disabled { opacity: 0.3; pointer-events: none; }
+
+/* ── APP SHELL ── */
+#app { display: none; height: 100vh; overflow: hidden; }
+#app.on { display: flex; flex-direction: column; }
+
+.shell {
+  display: flex; flex: 1; overflow: hidden;
+  padding-bottom: var(--player-h);
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--bg-1);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  flex-shrink: 0; padding: 28px 12px 20px;
+  overflow-y: auto;
+}
+.sidebar-logo {
+  padding: 0 12px; margin-bottom: 28px;
+  font-size: 17px; font-weight: 700; letter-spacing: -0.4px;
+  color: var(--text);
+}
+.nav-group { margin-bottom: 24px; }
+.nav-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--text-3);
+  padding: 0 14px; margin-bottom: 6px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 14px; border-radius: 9px;
+  font-size: 13.5px; font-weight: 500; color: var(--text-2);
+  cursor: pointer; transition: all 0.15s var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-item:hover { background: var(--surface); color: var(--text); }
+.nav-item.on { background: var(--surface); color: var(--text); font-weight: 600; }
+.nav-item .ni { width: 18px; flex-shrink: 0; opacity: 0.7; }
+.nav-item.on .ni { opacity: 1; }
+
+.sidebar-divider { height: 1px; background: var(--border); margin: 8px 14px 16px; }
+
+.pl-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 14px; border-radius: 9px;
+  font-size: 13px; color: var(--text-2); cursor: pointer;
+  transition: all 0.15s var(--ease);
+}
+.pl-item:hover { background: var(--surface); color: var(--text); }
+.pl-img {
+  width: 32px; height: 32px; border-radius: 6px;
+  background: var(--bg-3); object-fit: cover; flex-shrink: 0;
+}
+.pl-name { font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── MAIN ── */
+.main {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  background: var(--bg);
+  scroll-behavior: smooth;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  position: sticky; top: 0; z-index: 80;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 28px;
+  display: flex; align-items: center; gap: 14px;
+}
+.topbar-nav { display: flex; gap: 6px; }
+.topbar-navbtn {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--bg-3);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.15s;
+  color: var(--text-2);
+}
+.topbar-navbtn:hover { background: var(--bg-4); color: var(--text); }
+.search-wrap {
+  flex: 1; max-width: 380px; position: relative;
+}
+.search-icon-pos {
+  position: absolute; left: 12px; top: 50%;
+  transform: translateY(-50%); color: var(--text-3);
+  pointer-events: none;
+}
+.search-inp {
+  width: 100%; background: var(--bg-2);
+  border: 1px solid var(--border); border-radius: 50px;
+  padding: 8px 14px 8px 36px;
+  font-size: 13.5px; color: var(--text); outline: none;
+  transition: all 0.2s var(--ease);
+}
+.search-inp:focus {
+  border-color: rgba(255,255,255,0.2);
+  background: var(--bg-3);
+}
+.search-inp::placeholder { color: var(--text-3); }
+.topbar-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg,#3a0010,#7a0020);
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  color: rgba(255,255,255,0.9); flex-shrink: 0;
+  transition: all 0.15s;
+}
+.topbar-avatar:hover { filter: brightness(1.15); }
+
+/* ── PAGES ── */
+.page { display: none; animation: fadeUp 0.3s var(--ease); }
+.page.on { display: block; }
+.page-pad { padding: 28px 28px 48px; }
+
+/* ── SECTION ── */
+.sec { margin-bottom: 36px; }
+.sec-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.sec-title { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+.sec-more {
+  font-size: 12px; font-weight: 500; color: var(--text-3);
+  cursor: pointer; transition: color 0.15s;
+}
+.sec-more:hover { color: var(--text-2); }
+
+/* ── SCROLL ROW ── */
+.scroll-row {
+  display: flex; gap: 12px;
+  overflow-x: auto; padding-bottom: 4px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.scroll-row::-webkit-scrollbar { display: none; }
+
+/* ── CARD ── */
+.card {
+  flex-shrink: 0; scroll-snap-align: start;
+  width: 156px; cursor: pointer;
+  transition: transform 0.2s var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.card:hover { transform: translateY(-2px); }
+.card-img {
+  width: 156px; height: 156px; border-radius: var(--r);
+  object-fit: cover; background: var(--bg-3);
+  margin-bottom: 9px; position: relative; overflow: hidden;
+}
+.card-img-inner {
+  width: 100%; height: 100%; object-fit: cover;
+  border-radius: var(--r); display: block;
+}
+.card-play {
+  position: absolute; right: 8px; bottom: 8px;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transform: translateY(4px);
+  transition: all 0.2s var(--ease);
+}
+.card:hover .card-play { opacity: 1; transform: translateY(0); }
+.card-title {
+  font-size: 13px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+.card-sub {
+  font-size: 11.5px; color: var(--text-3);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ── HERO STRIP ── */
+.hero-strip {
+  margin: 0 0 32px;
+  border-radius: var(--r-xl);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  padding: 28px 32px;
+  display: flex; align-items: center; gap: 24px;
+  position: relative; overflow: hidden;
+}
+.hero-strip::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 80% 50%, rgba(250,45,72,0.06), transparent 60%);
+  pointer-events: none;
+}
+.hero-text { flex: 1; position: relative; }
+.hero-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 8px; opacity: 0.8;
+}
+.hero-title {
+  font-size: 22px; font-weight: 700; letter-spacing: -0.5px;
+  line-height: 1.2; margin-bottom: 6px;
+}
+.hero-sub { font-size: 13px; color: var(--text-2); line-height: 1.5; margin-bottom: 18px; }
+.hero-btns { display: flex; gap: 10px; }
+.hero-btn-play {
+  display: flex; align-items: center; gap: 7px;
+  background: #fff; color: #000;
+  padding: 9px 18px; border-radius: 50px;
+  font-size: 13px; font-weight: 600;
+  transition: all 0.2s var(--ease);
+}
+.hero-btn-play:hover { background: rgba(255,255,255,0.88); }
+.hero-btn-sec {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--surface); color: var(--text-2);
+  padding: 9px 18px; border-radius: 50px;
+  font-size: 13px; font-weight: 500;
+  border: 1px solid var(--border);
+  transition: all 0.2s var(--ease);
+}
+.hero-btn-sec:hover { background: var(--surface-hover); color: var(--text); }
+
+/* ── MOOD GRID ── */
+.mood-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+.mood-card {
+  border-radius: var(--r);
+  padding: 18px 16px 16px;
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: all 0.2s var(--ease); min-height: 80px;
+}
+.mood-card:hover { transform: translateY(-2px); }
+.mood-card-name {
+  font-size: 14px; font-weight: 700; letter-spacing: -0.3px;
+  color: white; position: relative; z-index: 1;
+}
+.mood-card-count {
+  font-size: 11px; color: rgba(255,255,255,0.55);
+  margin-top: 4px; position: relative; z-index: 1;
+}
+.mood-card-glyph {
+  position: absolute; right: 10px; bottom: 6px;
+  font-size: 36px; opacity: 0.35; line-height: 1;
+}
+.m-chill    { background: linear-gradient(135deg, #0f172a, #1e3a5f); }
+.m-energy   { background: linear-gradient(135deg, #1c0a00, #7c2d12); }
+.m-focus    { background: linear-gradient(135deg, #052e16, #14532d); }
+.m-sad      { background: linear-gradient(135deg, #0c1445, #1e3a8a); }
+.m-romantic { background: linear-gradient(135deg, #2d0020, #6b1030); }
+.m-relax    { background: linear-gradient(135deg, #0a1628, #0f3460); }
+
+/* ── SONG ROW ── */
+.song-list { display: flex; flex-direction: column; }
+.song-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 7px 10px; border-radius: 9px;
+  cursor: pointer; transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.song-row:hover { background: var(--surface); }
+.song-row.playing { background: rgba(250,45,72,0.06); }
+.sr-num {
+  width: 20px; text-align: center;
+  font-size: 12px; color: var(--text-3); flex-shrink: 0;
+}
+.sr-eq {
+  display: none; width: 20px; height: 16px;
+  align-items: flex-end; justify-content: center; gap: 2px;
+  flex-shrink: 0;
+}
+.song-row.playing .sr-num { display: none; }
+.song-row.playing .sr-eq { display: flex; }
+.eq-b {
+  width: 2.5px; background: var(--red);
+  border-radius: 1px; animation: eq1 0.7s ease infinite;
+}
+.eq-b:nth-child(2) { animation: eq2 0.6s ease infinite; }
+.eq-b:nth-child(3) { animation: eq3 0.8s ease infinite; }
+.sr-thumb {
+  width: 40px; height: 40px; border-radius: 8px;
+  object-fit: cover; background: var(--bg-3); flex-shrink: 0;
+}
+.sr-info { flex: 1; min-width: 0; }
+.sr-title {
+  font-size: 13.5px; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.song-row.playing .sr-title { color: var(--accent); }
+.sr-artist {
+  font-size: 12px; color: var(--text-3); margin-top: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sr-dur { font-size: 12px; color: var(--text-3); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.sr-acts { display: flex; gap: 2px; opacity: 0; transition: opacity 0.15s; flex-shrink: 0; }
+.song-row:hover .sr-acts { opacity: 1; }
+.sr-btn {
+  width: 28px; height: 28px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-3); transition: all 0.15s;
+}
+.sr-btn:hover { color: var(--text); background: var(--surface-hover); }
+
+/* ── SEARCH PAGE ── */
+.genre-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 10px; margin-bottom: 36px;
+}
+.genre-card {
+  border-radius: var(--r); padding: 18px 16px;
+  cursor: pointer; transition: all 0.2s var(--ease);
+  position: relative; overflow: hidden; min-height: 82px;
+}
+.genre-card:hover { transform: scale(1.02); }
+.genre-name {
+  font-size: 14px; font-weight: 700; letter-spacing: -0.2px;
+  color: white; position: relative; z-index: 1;
+}
+.genre-glyph {
+  position: absolute; right: 10px; bottom: 5px;
+  font-size: 34px; opacity: 0.3; line-height: 1;
+}
+
+/* ── COLLECTION ── */
+.tab-bar {
+  display: flex; gap: 4px; margin-bottom: 24px;
+  border-bottom: 1px solid var(--border); padding-bottom: 0;
+}
+.tab {
+  padding: 9px 16px; font-size: 13.5px; font-weight: 500;
+  color: var(--text-3); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: all 0.15s;
+}
+.tab:hover { color: var(--text-2); }
+.tab.on { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+
+/* ── PROFILE ── */
+.profile-hero {
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: var(--r-xl); padding: 32px;
+  display: flex; align-items: center; gap: 22px; margin-bottom: 24px;
+}
+.profile-av {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: linear-gradient(135deg,#3a0010,#7a0020);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; font-weight: 700; flex-shrink: 0;
+  color: rgba(255,255,255,0.9);
+}
+.profile-name { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+.profile-sub { font-size: 13px; color: var(--text-3); }
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px; margin-bottom: 28px;
+}
+.stat-box {
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 18px 20px;
+}
+.stat-val {
+  font-size: 26px; font-weight: 700; letter-spacing: -1px;
+  margin-bottom: 4px; color: var(--accent);
+}
+.stat-key { font-size: 12px; color: var(--text-3); }
+.top-row { display: flex; flex-direction: column; gap: 6px; }
+.top-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 14px;
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: 9px;
+}
+.top-n { font-size: 11px; color: var(--text-3); width: 16px; }
+.top-name { flex: 1; font-size: 13.5px; font-weight: 500; }
+.top-bar-bg { width: 80px; height: 3px; background: var(--bg-4); border-radius: 2px; }
+.top-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+
+/* ── PLAYER ── */
+.player {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: var(--player-h);
+  background: rgba(10,10,10,0.92);
+  backdrop-filter: blur(32px) saturate(1.8);
+  -webkit-backdrop-filter: blur(32px) saturate(1.8);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 16px; z-index: 200;
+}
+.player::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(37,99,235,0.04), transparent 30%);
+  opacity: 0; transition: opacity 0.5s;
+}
+.player.playing::before { opacity: 1; }
+.player.playing .p-art { box-shadow: 0 0 0 2px rgba(250,45,72,0.25); }
+
+/* Player left */
+.p-left {
+  display: flex; align-items: center; gap: 12px;
+  flex: 1; min-width: 0; max-width: 260px;
+}
+.p-art-wrap { position: relative; flex-shrink: 0; }
+.p-art {
+  width: 52px; height: 52px; border-radius: 9px;
+  object-fit: cover; background: var(--bg-3);
+  transition: border-radius 0.5s var(--ease);
+}
+.player.playing .p-art { animation: none; }
+.p-meta { flex: 1; min-width: 0; }
+.p-title {
+  font-size: 13px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.p-artist {
+  font-size: 12px; color: var(--text-3); margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.p-like { color: var(--text-3); transition: color 0.15s; padding: 4px; flex-shrink: 0; }
+.p-like:hover, .p-like.on { color: var(--red); }
+
+/* Player center */
+.p-center {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 7px; flex: 1.4; max-width: 440px;
+}
+.p-ctrls {
+  display: flex; align-items: center; gap: 18px;
+}
+.p-ctrl {
+  color: var(--text-3); display: flex; align-items: center;
+  transition: color 0.15s, transform 0.15s;
+  padding: 3px;
+}
+.p-ctrl:hover { color: var(--text-2); transform: scale(1.1); }
+.p-ctrl.on { color: var(--text); }
+.p-play {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s var(--ease); flex-shrink: 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+.p-play:hover { transform: scale(1.06); }
+.p-play svg { color: #000; }
+.p-progress {
+  display: flex; align-items: center; gap: 9px; width: 100%;
+}
+.p-time { font-size: 10px; color: var(--text-3); min-width: 28px; font-variant-numeric: tabular-nums; }
+.p-track {
+  flex: 1; height: 3px; background: var(--bg-4);
+  border-radius: 2px; cursor: pointer; position: relative;
+  transition: height 0.15s;
+}
+.p-track:hover { height: 5px; }
+.p-fill {
+  height: 100%; background: var(--text);
+  border-radius: 2px; position: relative;
+  transition: width 0.1s linear;
+}
+.player.playing .p-fill { background: var(--accent); }
+.p-thumb {
+  position: absolute; right: -4px; top: 50%;
+  transform: translateY(-50%) scale(0);
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--text); transition: transform 0.15s var(--spring);
+}
+.p-track:hover .p-thumb { transform: translateY(-50%) scale(1); }
+
+/* Player right */
+.p-right {
+  display: flex; align-items: center; gap: 10px;
+  flex: 1; justify-content: flex-end; max-width: 260px;
+}
+.p-icon { color: var(--text-3); transition: color 0.15s; padding: 3px; }
+.p-icon:hover, .p-icon.on { color: var(--text-2); }
+.p-vol-wrap { display: flex; align-items: center; gap: 7px; }
+.p-vol-track {
+  width: 70px; height: 3px; background: var(--bg-4);
+  border-radius: 2px; cursor: pointer; transition: height 0.15s;
+}
+.p-vol-track:hover { height: 5px; }
+.p-vol-fill { height: 100%; background: var(--text-3); border-radius: 2px; }
+
+/* Player visualizer */
+.p-vis {
+  display: flex; align-items: flex-end;
+  justify-content: center; gap: 2px; height: 22px;
+}
+.vis-b {
+  width: 2.5px; background: rgba(250,45,72,0.6); border-radius: 1.5px;
+  animation: eq1 0.6s ease infinite;
+  animation-play-state: paused;
+  min-height: 2px;
+}
+.vis-b:nth-child(2) { animation: eq2 0.5s ease infinite; animation-play-state: paused; }
+.vis-b:nth-child(3) { animation: eq3 0.7s ease infinite; animation-play-state: paused; }
+.vis-b:nth-child(4) { animation: eq1 0.55s ease infinite; animation-play-state: paused; }
+.vis-b:nth-child(5) { animation: eq2 0.65s ease infinite; animation-play-state: paused; }
+.player.playing .vis-b { animation-play-state: running; }
+
+/* ── PANELS ── */
+.panel {
+  position: fixed; right: 0; top: 0;
+  bottom: var(--player-h); width: 300px;
+  background: var(--bg-1); border-left: 1px solid var(--border);
+  z-index: 150; display: flex; flex-direction: column;
+  transform: translateX(100%); transition: transform 0.3s var(--ease);
+}
+.panel.on { transform: translateX(0); }
+.panel-head {
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.panel-title { font-size: 14px; font-weight: 700; }
+.panel-close { color: var(--text-3); cursor: pointer; transition: color 0.15s; }
+.panel-close:hover { color: var(--text); }
+.panel-body { flex: 1; overflow-y: auto; padding: 8px 10px; }
+
+.q-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 8px; border-radius: 8px; cursor: pointer;
+  transition: background 0.15s;
+}
+.q-item:hover { background: var(--surface); }
+.q-item.on { background: rgba(250,45,72,0.08); }
+.q-item img { width: 38px; height: 38px; border-radius: 7px; object-fit: cover; background: var(--bg-3); flex-shrink: 0; }
+.q-title { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.q-artist { font-size: 11.5px; color: var(--text-3); }
+
+.lyrics-text { font-size: 15px; line-height: 2.1; color: var(--text-2); white-space: pre-line; padding: 20px 20px; }
+
+/* ── CONTEXT MENU ── */
+.ctx {
+  position: fixed; z-index: 999;
+  background: rgba(28,28,28,0.95);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: var(--r); padding: 5px;
+  min-width: 170px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+  animation: scaleIn 0.15s var(--ease);
+  display: none;
+}
+.ctx.on { display: block; }
+.ctx-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 12px; border-radius: 8px;
+  font-size: 13px; font-weight: 500; color: var(--text-2);
+  cursor: pointer; transition: all 0.12s;
+}
+.ctx-item:hover { background: var(--surface); color: var(--text); }
+.ctx-sep { height: 1px; background: var(--border); margin: 4px 0; }
+
+/* ── TOAST ── */
+.toast-wrap {
+  position: fixed; bottom: calc(var(--player-h) + 14px);
+  left: 50%; transform: translateX(-50%);
+  z-index: 9999; display: flex; flex-direction: column-reverse;
+  align-items: center; gap: 7px;
+}
+.toast {
+  background: rgba(30,30,30,0.96);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 50px; padding: 9px 18px;
+  font-size: 13px; font-weight: 500;
+  display: flex; align-items: center; gap: 7px;
+  white-space: nowrap; animation: fadeUp 0.25s var(--ease);
+}
+
+/* ── EMPTY STATE ── */
+.empty {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60px 20px; text-align: center; gap: 12px;
+}
+.empty-ico { font-size: 44px; opacity: 0.25; }
+.empty-t { font-size: 16px; font-weight: 700; color: var(--text-2); }
+.empty-s { font-size: 13px; color: var(--text-3); max-width: 240px; line-height: 1.5; }
+
+/* ── SKELETON ── */
+.skel {
+  background: linear-gradient(90deg, var(--bg-2) 25%, var(--bg-3) 50%, var(--bg-2) 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 8px;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 720px) {
+  :root { --sidebar-w: 0px; }
+  .sidebar { display: none; }
+  .page-pad { padding: 20px 16px 48px; }
+  .topbar { padding: 12px 16px; }
+  .p-right { display: none; }
+  .panel { width: 100%; }
+  .ob-top { padding: 32px 24px 0; }
+  .ob-body { padding: 28px 24px 140px; }
+  .ob-footer { padding: 16px 24px 28px; }
+  .hero-strip { padding: 22px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ONBOARDING -->
+<div id="ob">
+  <div class="ob-top">
+    <div class="ob-wordmark">Nata<span style="color:var(--accent)">fy</span></div>
+    <div class="ob-steps">
+      <div class="ob-step-pip on" id="pip1"></div>
+      <div class="ob-step-pip" id="pip2"></div>
+    </div>
+  </div>
+  <div class="ob-body">
+    <div id="ob1">
+      <div class="ob-eyebrow">Langkah 1 dari 2</div>
+      <div class="ob-h">Artis favoritmu?</div>
+      <div class="ob-sub">Pilih beberapa untuk memulai rekomendasi personal.</div>
+      <div class="ob-grid" id="ob-artists"></div>
+    </div>
+    <div id="ob2" style="display:none">
+      <div class="ob-eyebrow">Langkah 2 dari 2</div>
+      <div class="ob-h">Penyanyi favoritmu?</div>
+      <div class="ob-sub">Kami akan menyesuaikan musik sesuai seleramu.</div>
+      <div class="ob-grid" id="ob-singers"></div>
+    </div>
+  </div>
+  <div class="ob-footer">
+    <div class="ob-count" id="ob-count">Pilih minimal 3</div>
+    <div class="ob-actions">
+      <button class="btn-ghost" id="ob-back" onclick="obBack()" style="display:none">Kembali</button>
+      <button class="btn-solid" id="ob-next" onclick="obNext()" disabled>Lanjut</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="shell">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">Nata<span style="color:var(--accent)">fy</span></div>
+      <div class="nav-group">
+        <div class="nav-item on" id="nav-home" onclick="go('home')">
+          <span class="ni">
+            <!-- home icon -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+          </span>
+          Beranda
+        </div>
+        <div class="nav-item" id="nav-search" onclick="go('search')">
+          <span class="ni">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </span>
+          Cari
+        </div>
+        <div class="nav-item" id="nav-collection" onclick="go('collection')">
+          <span class="ni">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          </span>
+          Koleksi
+        </div>
+        <div class="nav-item" id="nav-profile" onclick="go('profile')">
+          <span class="ni">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          </span>
+          Profil
+        </div>
+      </div>
+
+      <div class="sidebar-divider"></div>
+      <div class="nav-label">Playlist</div>
+
+      <div class="pl-item" onclick="loadSmartPlaylist()">
+        <img class="pl-img" src="https://picsum.photos/seed/sp1/32/32" alt="">
+        <span class="pl-name">Mix Untukmu</span>
+      </div>
+      <div class="pl-item" onclick="loadDailyMix()">
+        <img class="pl-img" src="https://picsum.photos/seed/sp2/32/32" alt="">
+        <span class="pl-name">Daily Mix</span>
+      </div>
+      <div class="pl-item" onclick="loadMoodPlaylist('chill')">
+        <img class="pl-img" src="https://picsum.photos/seed/sp3/32/32" alt="">
+        <span class="pl-name">Chill</span>
+      </div>
+      <div class="pl-item" onclick="loadMoodPlaylist('focus')">
+        <img class="pl-img" src="https://picsum.photos/seed/sp4/32/32" alt="">
+        <span class="pl-name">Fokus</span>
+      </div>
+      <div class="pl-item" onclick="loadMoodPlaylist('energetic')">
+        <img class="pl-img" src="https://picsum.photos/seed/sp5/32/32" alt="">
+        <span class="pl-name">Energik</span>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main" id="main">
+      <!-- TOPBAR -->
+      <div class="topbar">
+        <div class="topbar-nav">
+          <div class="topbar-navbtn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </div>
+          <div class="topbar-navbtn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+        <div class="search-wrap">
+          <span class="search-icon-pos">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </span>
+          <input class="search-inp" id="search-inp" type="text" placeholder="Cari lagu, artis, album..." oninput="handleSearch(this.value)">
+        </div>
+        <div class="topbar-avatar" id="tb-av" onclick="go('profile')">N</div>
+      </div>
+
+      <!-- HOME -->
+      <div class="page on" id="page-home">
+        <div class="page-pad">
+          <div class="hero-strip">
+            <div class="hero-text">
+              <div class="hero-label">Rekomendasi Hari Ini</div>
+              <div class="hero-title" id="hero-title">Selamat datang kembali</div>
+              <div class="hero-sub">Musik yang dipilihkan khusus untukmu.</div>
+              <div class="hero-btns">
+                <button class="hero-btn-play" onclick="playHeroPlaylist()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+                  Putar
+                </button>
+                <button class="hero-btn-sec" onclick="loadSmartPlaylist()">Lihat semua</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-head">
+              <div class="sec-title">Untukmu</div>
+              <div class="sec-more" onclick="loadSmartPlaylist()">Lihat semua</div>
+            </div>
+            <div class="scroll-row" id="rec-row"></div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-head">
+              <div class="sec-title">Trending</div>
+            </div>
+            <div class="scroll-row" id="trend-row"></div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-head">
+              <div class="sec-title">Playlist Harian</div>
+              <div class="sec-more" onclick="loadDailyMix()">Lihat semua</div>
+            </div>
+            <div class="song-list" id="daily-list"></div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-head">
+              <div class="sec-title">Album</div>
+            </div>
+            <div class="scroll-row" id="albums-row"></div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-head"><div class="sec-title">Mood</div></div>
+            <div class="mood-grid" id="mood-grid"></div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-head">
+              <div class="sec-title">Chill</div>
+              <div class="sec-more" onclick="loadMoodPlaylist('chill')">Lihat semua</div>
+            </div>
+            <div class="scroll-row" id="chill-row"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEARCH -->
+      <div class="page" id="page-search">
+        <div class="page-pad">
+          <div class="sec-title" style="margin-bottom:20px;font-size:22px;letter-spacing:-0.5px">Cari</div>
+          <div id="genre-section">
+            <div style="font-size:12px;color:var(--text-3);margin-bottom:14px;font-weight:600;letter-spacing:.8px;text-transform:uppercase">Genre</div>
+            <div class="genre-grid" id="genre-grid"></div>
+          </div>
+          <div id="search-res" style="display:none">
+            <div id="sres-songs"></div>
+            <div id="sres-artists" style="margin-top:28px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLLECTION -->
+      <div class="page" id="page-collection">
+        <div class="page-pad">
+          <div style="font-size:22px;font-weight:700;letter-spacing:-0.5px;margin-bottom:6px">Koleksi</div>
+          <div style="font-size:13px;color:var(--text-3);margin-bottom:24px">Musik yang kamu simpan</div>
+          <div class="tab-bar">
+            <div class="tab on" onclick="switchTab(this,'liked')">Disukai</div>
+            <div class="tab" onclick="switchTab(this,'recent')">Terakhir</div>
+            <div class="tab" onclick="switchTab(this,'playlists')">Playlist</div>
+          </div>
+          <div id="col-liked"><div class="song-list" id="liked-list"></div><div id="liked-empty" style="display:none" class="empty"><div class="empty-ico">♡</div><div class="empty-t">Belum ada</div><div class="empty-s">Tekan ♥ di lagu untuk menyimpannya</div></div></div>
+          <div id="col-recent" style="display:none"><div class="song-list" id="recent-list"></div></div>
+          <div id="col-playlists" style="display:none"><div class="scroll-row" id="plist-grid" style="flex-wrap:wrap;gap:10px;"></div></div>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="page" id="page-profile">
+        <div class="page-pad">
+          <div class="profile-hero">
+            <div class="profile-av" id="pav">N</div>
+            <div>
+              <div class="profile-name" id="pname">Pendengar</div>
+              <div class="profile-sub">Natafy · Bergabung hari ini</div>
+            </div>
+          </div>
+          <div class="stat-row" id="stat-row"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px">
+            <div>
+              <div style="font-size:14px;font-weight:700;margin-bottom:12px">Artis Teratas</div>
+              <div class="top-row" id="top-artists"></div>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:700;margin-bottom:12px">Genre Favorit</div>
+              <div class="top-row" id="top-genres"></div>
+            </div>
+          </div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:12px">Pengaturan</div>
+          <div class="song-list">
+            <div class="song-row" onclick="resetOnboarding()">
+              <div class="sr-thumb" style="background:var(--bg-3);display:flex;align-items:center;justify-content:center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 8v4l3 3"/></svg>
+              </div>
+              <div class="sr-info">
+                <div class="sr-title">Atur Ulang Preferensi</div>
+                <div class="sr-artist">Pilih ulang artis & penyanyi</div>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:var(--text-3)"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- PLAYER -->
+  <div class="player" id="player">
+    <div class="p-left">
+      <div class="p-art-wrap">
+        <img class="p-art" id="p-art" src="https://picsum.photos/seed/def/52/52" alt="">
+      </div>
+      <div class="p-meta">
+        <div class="p-title" id="p-title">—</div>
+        <div class="p-artist" id="p-artist">—</div>
+      </div>
+      <button class="p-like" id="p-like" onclick="toggleLike()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+    </div>
+
+    <div class="p-center">
+      <div class="p-ctrls">
+        <button class="p-ctrl" id="p-shuf" title="Acak" onclick="toggleShuffle()">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+        </button>
+        <button class="p-ctrl" onclick="prevSong()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+        </button>
+        <button class="p-play" id="p-play" onclick="togglePlay()">
+          <svg id="ico-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+          <svg id="ico-pause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        </button>
+        <button class="p-ctrl" onclick="nextSong()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+        </button>
+        <button class="p-ctrl" id="p-rep" title="Ulangi" onclick="toggleRepeat()">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        </button>
+      </div>
+      <div class="p-progress">
+        <span class="p-time" id="p-cur">0:00</span>
+        <div class="p-track" id="p-track" onclick="seekTo(event)">
+          <div class="p-fill" id="p-fill" style="width:0%">
+            <div class="p-thumb"></div>
+          </div>
+        </div>
+        <span class="p-time" id="p-tot">0:00</span>
+      </div>
+    </div>
+
+    <div class="p-right">
+      <div class="p-vis">
+        <div class="vis-b"></div><div class="vis-b"></div>
+        <div class="vis-b"></div><div class="vis-b"></div>
+        <div class="vis-b"></div>
+      </div>
+      <button class="p-icon" id="p-lyrics-btn" onclick="toggleLyrics()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </button>
+      <button class="p-icon" id="p-queue-btn" onclick="toggleQueue()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1.5"/><circle cx="3" cy="12" r="1.5"/><circle cx="3" cy="18" r="1.5"/></svg>
+      </button>
+      <div class="p-vol-wrap">
+        <button class="p-icon" onclick="toggleMute()">
+          <svg id="vol-ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        </button>
+        <div class="p-vol-track" id="vol-track" onclick="setVol(event)">
+          <div class="p-vol-fill" id="vol-fill" style="width:80%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUEUE PANEL -->
+  <div class="panel" id="queue-panel">
+    <div class="panel-head">
+      <div class="panel-title">Antrian</div>
+      <button class="panel-close" onclick="toggleQueue()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="panel-body" id="queue-body"></div>
+  </div>
+
+  <!-- LYRICS PANEL -->
+  <div class="panel" id="lyrics-panel">
+    <div class="panel-head">
+      <div class="panel-title">Lirik</div>
+      <button class="panel-close" onclick="toggleLyrics()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="panel-body" id="lyrics-body">
+      <div class="empty"><div class="empty-ico">🎵</div><div class="empty-t">Putar lagu dulu</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div class="ctx" id="ctx">
+  <div class="ctx-item" onclick="ctxPlay()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg> Putar
+  </div>
+  <div class="ctx-item" onclick="ctxNext()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 8 16 12 12 16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Putar Selanjutnya
+  </div>
+  <div class="ctx-item" onclick="ctxQueue()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Tambah ke Antrian
+  </div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="ctxRadio()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg> Radio
+  </div>
+  <div class="ctx-item" onclick="ctxLike()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Sukai
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+<audio id="aud" preload="none"></audio>
+
+<script>
+// ── STATE ──
+const APP = {
+  userId: 'user_' + (localStorage.getItem('natafy_uid') || (() => { const id = Math.random().toString(36).substr(2,9); localStorage.setItem('natafy_uid', id); return id; })()),
+  currentSong: null,
+  isPlaying: false,
+  isShuffle: false,
+  repeatMode: 0,
+  volume: 0.8,
+  isMuted: false,
+  queue: [],
+  queueIndex: 0,
+  liked: JSON.parse(localStorage.getItem('natafy_liked') || '[]'),
+  recent: JSON.parse(localStorage.getItem('natafy_recent') || '[]'),
+  homeData: null,
+  ctxSong: null,
+  simInterval: null,
+  simPos: 0,
+  listenStart: null,
+  baseUrl: '',
+};
+const aud = document.getElementById('aud');
+
+// ── UTILS ──
+const fmt = s => { if (!s || isNaN(s)) return '0:00'; const m = Math.floor(s/60), sec = Math.floor(s%60); return `${m}:${sec.toString().padStart(2,'0')}`; };
+
+async function api(path, method='GET', body=null) {
+  try {
+    const opts = { method, headers: {'Content-Type':'application/json'} };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(APP.baseUrl + path, opts);
+    if (!r.ok) throw new Error(r.status);
+    return await r.json();
+  } catch(e) { console.warn('API:', path, e.message); return null; }
+}
+
+function toast(msg) {
+  const w = document.getElementById('toasts');
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  w.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity .25s'; setTimeout(()=>t.remove(),300); }, 2800);
+}
+
+// ── ONBOARDING ──
+let obStep=1, selArtists=[], selSingers=[];
+
+async function initOb() {
+  const prefs = await api(`/api/preferences/${APP.userId}`);
+  if (prefs && prefs.completed) { showApp(); return; }
+  const [a, s] = await Promise.all([api('/api/artists'), api('/api/singers')]);
+  if (a) renderObGrid('ob-artists', a.artists, 'artist');
+  if (s) renderObGrid('ob-singers', s.singers, 'singer');
+  // Fallback if API not ready
+  if (!a) renderObFallback('ob-artists', 'artist');
+  if (!s) renderObFallback('ob-singers', 'singer');
+}
+
+const FALLBACK_ARTISTS = ['Taylor Swift','Ed Sheeran','Coldplay','Billie Eilish','The Weeknd','Dua Lipa','BTS','BLACKPINK','Raisa','Tulus','Olivia Rodrigo','Harry Styles','Bruno Mars','Adele','Drake','Post Malone','Ariana Grande','Justin Bieber','Beyoncé','Rihanna','Eminem','Lady Gaga','Imagine Dragons','Arctic Monkeys','Nirvana','Queen','Michael Jackson','Payung Teduh','Hindia','Fiersa Besari','Noah','Sheila on 7','Dewa 19','Iwan Fals','Slank','Fourtwnty','Pamungkas','Nadin Amizah','IU','NewJeans'];
+const FALLBACK_SINGERS = ['Afgan','Rizky Febian','Judika','Andmesh','Glenn Fredly','Raisa Andriana','Isyana Sarasvati','Tiara Andini','Mahalini','Lyodra','Ed Sheeran','Bruno Mars','The Weeknd','Harry Styles','Sam Smith','Taylor Swift','Billie Eilish','Ariana Grande','Dua Lipa','Adele','Olivia Rodrigo','SZA','Lana Del Rey','Khalid','Conan Gray','Jungkook','Lisa BLACKPINK','IU','Taeyeon','Nadin Amizah','Pamungkas','Tulus','Fiersa Besari','Hindia','Yura Yunita','BCL','Agnes Monica','Rossa','Charlie Puth','Shawn Mendes'];
+
+function renderObFallback(id, type) {
+  const items = type==='artist' ? FALLBACK_ARTISTS.slice(0,40) : FALLBACK_SINGERS.slice(0,40);
+  const fake = items.map((name,i) => ({ id:`${type}_${i}`, name, image:`https://i.pravatar.cc/52?img=${i+1}` }));
+  renderObGrid(id, fake, type);
+}
+
+function renderObGrid(id, items, type) {
+  document.getElementById(id).innerHTML = items.map(item => `
+    <div class="ob-chip" id="obc-${type}-${item.id}" onclick="toggleOb('${type}','${item.id}','${item.name.replace(/'/g,"\\'")}',this)">
+      <img src="${item.image || `https://i.pravatar.cc/52?img=${Math.ceil(Math.random()*70)}`}" alt="${item.name}" onerror="this.src='https://i.pravatar.cc/52?img=${Math.floor(Math.random()*70)+1}'">
+      <div class="ob-chip-name">${item.name}</div>
+      <div class="ob-chip-check"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+    </div>`).join('');
+}
+
+function toggleOb(type, id, name, el) {
+  const arr = type==='artist' ? selArtists : selSingers;
+  const idx = arr.findIndex(x=>x.id===id);
+  if (idx===-1) { arr.push({id,name}); el.classList.add('sel'); }
+  else { arr.splice(idx,1); el.classList.remove('sel'); }
+  updateObUI();
+}
+function updateObUI() {
+  const arr = obStep===1 ? selArtists : selSingers;
+  const btn = document.getElementById('ob-next'); 
+  btn.disabled = arr.length < 3;
+  document.getElementById('ob-count').innerHTML = `<b>${arr.length}</b> dipilih (min. 3)`;
+}
+function obNext() {
+  if (obStep===1) {
+    obStep=2;
+    document.getElementById('ob1').style.display='none';
+    document.getElementById('ob2').style.display='block';
+    document.getElementById('pip1').classList.remove('on');
+    document.getElementById('pip2').classList.add('on');
+    document.getElementById('ob-back').style.display='block';
+    document.getElementById('ob-next').textContent='Mulai';
+    updateObUI();
+  } else { finishOb(); }
+}
+function obBack() {
+  obStep=1;
+  document.getElementById('ob2').style.display='none';
+  document.getElementById('ob1').style.display='block';
+  document.getElementById('pip2').classList.remove('on');
+  document.getElementById('pip1').classList.add('on');
+  document.getElementById('ob-back').style.display='none';
+  document.getElementById('ob-next').textContent='Lanjut';
+  updateObUI();
+}
+async function finishOb() {
+  document.getElementById('ob-next').textContent='Menyimpan...';
+  document.getElementById('ob-next').disabled=true;
+  await api('/api/onboarding','POST',{ user_id:APP.userId, artists:selArtists.map(a=>a.name), singers:selSingers.map(s=>s.name) });
+  showApp();
+}
+function showApp() {
+  const ob = document.getElementById('ob');
+  ob.style.transition='opacity .4s';
+  ob.style.opacity='0';
+  setTimeout(()=>{ ob.style.display='none'; document.getElementById('app').classList.add('on'); loadHome(); }, 400);
+}
+
+// ── NAVIGATION ──
+function go(page) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('on'));
+  document.getElementById('page-'+page).classList.add('on');
+  const nav = document.getElementById('nav-'+page);
+  if (nav) nav.classList.add('on');
+  document.getElementById('main').scrollTop=0;
+  if (page==='search') initSearch();
+  if (page==='collection') loadCollection();
+  if (page==='profile') loadProfile();
+}
+
+// ── HOME ──
+const MOODS = {
+  chill:    {label:'Chill',    glyph:'😌', cls:'m-chill'},
+  energetic:{label:'Energetik',glyph:'⚡', cls:'m-energy'},
+  focus:    {label:'Fokus',    glyph:'🎯', cls:'m-focus'},
+  sad:      {label:'Sedih',    glyph:'🌧', cls:'m-sad'},
+  romantic: {label:'Romantis', glyph:'🌙', cls:'m-romantic'},
+  relax:    {label:'Santai',   glyph:'🌊', cls:'m-relax'},
+};
+
+async function loadHome() {
+  const data = await api(`/api/home/${APP.userId}`);
+  if (!data) { loadFallback(); return; }
+  APP.homeData = data;
+  renderCards('rec-row', data.recommended||[]);
+  renderCards('trend-row', data.trending||[]);
+  renderDailyList('daily-list', (data.daily_mix||[]).slice(0,8));
+  renderAlbumCards('albums-row', data.albums||[]);
+  renderMoodGrid(data.mood_playlists||{});
+  renderCards('chill-row', (data.mood_playlists&&data.mood_playlists.chill)||[]);
+  const greet = {morning:'Selamat pagi',afternoon:'Selamat siang',evening:'Selamat sore',night:'Selamat malam'};
+  document.getElementById('hero-title').textContent = greet[data.time_label] || 'Selamat datang';
+}
+
+function loadFallback() {
+  const songs = Array.from({length:20},(_,i)=>({
+    id:`d${i}`, title:['Blinding Lights','Levitating','Good 4 U','drivers license','Anti-Hero','As It Was','Heat Waves','Flowers','Cruel Summer','Easy On Me','Stay','Peaches','Bad Habits','Shivers','Watermelon Sugar','Uptown Funk','Shape of You','Blower\'s Daughter','Someone Like You','Rolling in the Deep'][i%20],
+    artist:['The Weeknd','Dua Lipa','Olivia Rodrigo','Olivia Rodrigo','Taylor Swift','Harry Styles','Glass Animals','Miley Cyrus','Taylor Swift','Adele','Justin Bieber','Justin Bieber','Ed Sheeran','Ed Sheeran','Harry Styles','Bruno Mars','Ed Sheeran','Damien Rice','Adele','Adele'][i%20],
+    cover:`https://picsum.photos/seed/${i+200}/156/156`, genre:'pop', mood:['chill','energetic','focus','sad','romantic','relax'][i%6], duration:200+i*7, popularity:80+i
+  }));
+  APP.homeData = {recommended:songs, trending:[...songs].reverse(), daily_mix:songs.slice(0,8), albums:[], mood_playlists:{}};
+  renderCards('rec-row', songs);
+  renderCards('trend-row', [...songs].reverse());
+  renderDailyList('daily-list', songs.slice(0,8));
+  renderMoodGrid({});
+  renderCards('chill-row', songs.slice(0,8));
+}
+
+function renderCards(id, songs) {
+  const c = document.getElementById(id); if (!c) return;
+  c.innerHTML = songs.map((s,i) => `
+    <div class="card" style="animation:fadeUp .3s ${i*.04}s both" onclick="playSong(${esc(s)})" oncontextmenu="showCtx(event,${esc(s)})">
+      <div class="card-img">
+        <img class="card-img-inner" src="${s.cover}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${s.id}/156/156'" alt="">
+        <div class="card-play">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M5 3l14 9-14 9V3z"/></svg>
+        </div>
+      </div>
+      <div class="card-title">${s.title}</div>
+      <div class="card-sub">${s.artist}</div>
+    </div>`).join('');
+}
+
+function renderAlbumCards(id, albums) {
+  const c = document.getElementById(id); if (!c) return;
+  c.innerHTML = albums.map(a => `
+    <div class="card" onclick="playAlbum(${esc(a)})">
+      <div class="card-img">
+        <img class="card-img-inner" src="${a.cover}" loading="lazy" alt="">
+        <div class="card-play"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M5 3l14 9-14 9V3z"/></svg></div>
+      </div>
+      <div class="card-title">${a.name}</div>
+      <div class="card-sub">${a.artist}</div>
+    </div>`).join('');
+}
+
+function renderDailyList(id, songs) {
+  const c = document.getElementById(id); if (!c) return;
+  c.innerHTML = songs.map((s,i) => `
+    <div class="song-row ${APP.currentSong?.id===s.id?'playing':''}" onclick="playSong(${esc(s)})" oncontextmenu="showCtx(event,${esc(s)})">
+      <div class="sr-num">${i+1}</div>
+      <div class="sr-eq"><div class="eq-b"></div><div class="eq-b"></div><div class="eq-b"></div></div>
+      <img class="sr-thumb" src="${s.cover}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${s.id}/40/40'" alt="">
+      <div class="sr-info"><div class="sr-title">${s.title}</div><div class="sr-artist">${s.artist}</div></div>
+      <div class="sr-dur">${fmt(s.duration)}</div>
+      <div class="sr-acts">
+        <button class="sr-btn" onclick="event.stopPropagation();addQ(${esc(s)})" title="Tambah antrian">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+function renderSongList(id, songs) {
+  const c = document.getElementById(id); if (!c) return;
+  c.innerHTML = songs.map((s,i) => `
+    <div class="song-row ${APP.currentSong?.id===s.id?'playing':''}" onclick="playSong(${esc(s)})" oncontextmenu="showCtx(event,${esc(s)})">
+      <div class="sr-num">${i+1}</div>
+      <div class="sr-eq"><div class="eq-b"></div><div class="eq-b"></div><div class="eq-b"></div></div>
+      <img class="sr-thumb" src="${s.cover}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${s.id}/40/40'" alt="">
+      <div class="sr-info"><div class="sr-title">${s.title}</div><div class="sr-artist">${s.artist}</div></div>
+      <div class="sr-dur">${fmt(s.duration)}</div>
+      <div class="sr-acts">
+        <button class="sr-btn" onclick="event.stopPropagation();addQ(${esc(s)})">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <button class="sr-btn" onclick="event.stopPropagation();likeSong(${esc(s)})">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+function renderMoodGrid(mp) {
+  const c = document.getElementById('mood-grid'); if (!c) return;
+  c.innerHTML = Object.entries(MOODS).map(([m,cfg]) => {
+    const count = (mp[m]||[]).length;
+    return `<div class="mood-card ${cfg.cls}" onclick="loadMoodPlaylist('${m}')">
+      <div class="mood-card-name">${cfg.label}</div>
+      <div class="mood-card-count">${count||'—'} lagu</div>
+      <div class="mood-card-glyph">${cfg.glyph}</div>
+    </div>`;
+  }).join('');
+}
+
+function esc(obj) { return JSON.stringify(obj).replace(/"/g,'&quot;'); }
+
+// ── PLAYBACK ──
+async function playSong(song) {
+  APP.currentSong = song;
+  APP.listenStart = Date.now();
+  document.getElementById('p-title').textContent = song.title;
+  document.getElementById('p-artist').textContent = song.artist;
+  document.getElementById('p-art').src = song.cover;
+  document.getElementById('p-art').onerror = () => document.getElementById('p-art').src = `https://picsum.photos/seed/${song.id}/52/52`;
+
+  const isLiked = APP.liked.some(s=>s.id===song.id);
+  updateLikeBtn(isLiked);
+
+  const data = await api(`/api/song/${song.id}/stream-url`);
+  if (data?.stream_url) {
+    aud.src = data.stream_url;
+    aud.volume = APP.isMuted ? 0 : APP.volume;
+    try { await aud.play(); setPlaying(true); }
+    catch { setPlaying(false); simulateSong(song); }
+  } else { simulateSong(song); }
+
+  addRecent(song);
+  api('/api/history','POST',{ user_id:APP.userId, song_id:song.id, title:song.title, artist:song.artist, genre:song.genre, mood:song.mood, duration:song.duration });
+  updateQueuePanel();
+  document.title = `${song.title} — Natafy`;
+}
+
+function simulateSong(song) {
+  if (APP.simInterval) clearInterval(APP.simInterval);
+  APP.simPos = 0; const dur = song.duration||200;
+  document.getElementById('p-tot').textContent = fmt(dur);
+  document.getElementById('p-cur').textContent = '0:00';
+  document.getElementById('p-fill').style.width = '0%';
+  setPlaying(true);
+  APP.simInterval = setInterval(()=>{
+    if (!APP.isPlaying) return;
+    APP.simPos += 0.5;
+    const pct = Math.min(100, (APP.simPos/dur)*100);
+    document.getElementById('p-fill').style.width = pct+'%';
+    document.getElementById('p-cur').textContent = fmt(APP.simPos);
+    if (APP.simPos >= dur) { clearInterval(APP.simInterval); onEnd(); }
+  }, 500);
+}
+
+function setPlaying(v) {
+  APP.isPlaying = v;
+  document.getElementById('ico-play').style.display = v?'none':'block';
+  document.getElementById('ico-pause').style.display = v?'block':'none';
+  document.getElementById('player').classList.toggle('playing', v);
+}
+
+function togglePlay() {
+  if (!APP.currentSong) {
+    if (APP.homeData?.recommended?.length) playSong(APP.homeData.recommended[0]);
+    else toast('Pilih lagu untuk diputar');
+    return;
+  }
+  if (APP.isPlaying) {
+    aud.pause(); if(APP.simInterval) clearInterval(APP.simInterval); setPlaying(false);
+  } else {
+    if (aud.src && aud.paused) aud.play().catch(()=>{});
+    else simulateSong(APP.currentSong);
+    setPlaying(true);
+  }
+}
+
+aud.addEventListener('timeupdate', ()=>{
+  if (!aud.duration) return;
+  const pct = (aud.currentTime/aud.duration)*100;
+  document.getElementById('p-fill').style.width = pct+'%';
+  document.getElementById('p-cur').textContent = fmt(aud.currentTime);
+  document.getElementById('p-tot').textContent = fmt(aud.duration);
+});
+aud.addEventListener('ended', onEnd);
+aud.addEventListener('error', ()=>{ if(APP.currentSong) simulateSong(APP.currentSong); });
+
+async function onEnd() {
+  if (APP.repeatMode===2) {
+    APP.simPos=0; if(aud.src){ aud.currentTime=0; aud.play().catch(()=>{}); } else simulateSong(APP.currentSong);
+    return;
+  }
+  if (APP.currentSong) api('/api/history','POST',{user_id:APP.userId,song_id:APP.currentSong.id,title:APP.currentSong.title,artist:APP.currentSong.artist,genre:APP.currentSong.genre,mood:APP.currentSong.mood,duration:APP.currentSong.duration,listen_duration:APP.listenStart?(Date.now()-APP.listenStart)/1000:0,completed:true});
+  nextSong();
+}
+
+async function nextSong() {
+  if (APP.queue.length) {
+    const ni = APP.isShuffle ? Math.floor(Math.random()*APP.queue.length) : Math.min(APP.queueIndex+1, APP.queue.length-1);
+    APP.queueIndex = ni; playSong(APP.queue[ni]); return;
+  }
+  const next = await api('/api/next-song','POST',{current_song:APP.currentSong,user_id:APP.userId});
+  if (next?.id) { playSong(next); return; }
+  if (APP.homeData?.recommended?.length) playSong(APP.homeData.recommended[Math.floor(Math.random()*APP.homeData.recommended.length)]);
+}
+
+function prevSong() {
+  if (APP.simPos>5||(aud.currentTime>5)){ APP.simPos=0; if(aud.src){aud.currentTime=0;} else if(APP.currentSong)simulateSong(APP.currentSong); return; }
+  if (APP.queue.length && APP.queueIndex>0) { APP.queueIndex--; playSong(APP.queue[APP.queueIndex]); }
+}
+
+function toggleShuffle() { APP.isShuffle=!APP.isShuffle; document.getElementById('p-shuf').classList.toggle('on',APP.isShuffle); toast(APP.isShuffle?'Acak aktif':'Acak nonaktif'); }
+function toggleRepeat() { APP.repeatMode=(APP.repeatMode+1)%3; document.getElementById('p-rep').classList.toggle('on',APP.repeatMode>0); const m=['Ulangi off','Ulangi semua','Ulangi 1']; toast(m[APP.repeatMode]); }
+
+function seekTo(e) {
+  const t=document.getElementById('p-track'), r=t.getBoundingClientRect(), pct=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
+  if(aud.duration){ aud.currentTime=aud.duration*pct; }
+  else if(APP.currentSong){ APP.simPos=(APP.currentSong.duration||200)*pct; document.getElementById('p-fill').style.width=`${pct*100}%`; document.getElementById('p-cur').textContent=fmt(APP.simPos); }
+}
+
+function setVol(e) {
+  const t=document.getElementById('vol-track'),r=t.getBoundingClientRect();
+  APP.volume=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)); aud.volume=APP.volume;
+  document.getElementById('vol-fill').style.width=`${APP.volume*100}%`; APP.isMuted=false;
+}
+function toggleMute() { APP.isMuted=!APP.isMuted; aud.muted=APP.isMuted; document.getElementById('vol-fill').style.width=APP.isMuted?'0%':`${APP.volume*100}%`; }
+
+function updateLikeBtn(liked) {
+  const b = document.getElementById('p-like');
+  b.classList.toggle('on', liked);
+  b.innerHTML = liked
+    ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`
+    : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+}
+
+function toggleLike() {
+  if (!APP.currentSong) return;
+  const idx=APP.liked.findIndex(s=>s.id===APP.currentSong.id);
+  if (idx===-1) { APP.liked.unshift(APP.currentSong); toast(`Ditambahkan ke Disukai`); updateLikeBtn(true); }
+  else { APP.liked.splice(idx,1); toast('Dihapus dari Disukai'); updateLikeBtn(false); }
+  localStorage.setItem('natafy_liked',JSON.stringify(APP.liked));
+}
+
+function likeSong(song) {
+  const idx=APP.liked.findIndex(s=>s.id===song.id);
+  if(idx===-1){ APP.liked.unshift(song); toast(`Disukai`); } else { APP.liked.splice(idx,1); toast('Dihapus'); }
+  localStorage.setItem('natafy_liked',JSON.stringify(APP.liked));
+}
+
+function addRecent(song) {
+  APP.recent=APP.recent.filter(s=>s.id!==song.id); APP.recent.unshift({...song,playedAt:Date.now()});
+  if(APP.recent.length>50) APP.recent=APP.recent.slice(0,50);
+  localStorage.setItem('natafy_recent',JSON.stringify(APP.recent));
+}
+
+// ── QUEUE ──
+function addQ(song) { APP.queue.push(song); toast(`Ditambahkan ke antrian`); updateQueuePanel(); }
+
+function updateQueuePanel() {
+  const b=document.getElementById('queue-body'); if(!b)return;
+  const all = APP.currentSong ? [APP.currentSong,...APP.queue] : APP.queue;
+  if (!all.length) { b.innerHTML='<div class="empty"><div class="empty-ico" style="font-size:32px">♪</div><div class="empty-t">Antrian kosong</div></div>'; return; }
+  b.innerHTML = all.map((s,i)=>`
+    <div class="q-item ${i===0&&APP.currentSong?'on':''}" onclick="playSong(${esc(s)})">
+      <img src="${s.cover}" alt="" onerror="this.src='https://picsum.photos/seed/${s.id}/38/38'">
+      <div class="q-info"><div class="q-title">${i===0&&APP.currentSong?'▶ ':''}${s.title}</div><div class="q-artist">${s.artist}</div></div>
+    </div>`).join('');
+}
+
+function toggleQueue() {
+  const p=document.getElementById('queue-panel'); p.classList.toggle('on');
+  document.getElementById('p-queue-btn').classList.toggle('on',p.classList.contains('on'));
+  if(document.getElementById('lyrics-panel').classList.contains('on')){ document.getElementById('lyrics-panel').classList.remove('on'); document.getElementById('p-lyrics-btn').classList.remove('on'); }
+  updateQueuePanel();
+}
+
+// ── LYRICS ──
+async function loadLyrics(id) {
+  document.getElementById('lyrics-body').innerHTML='<div class="empty"><div style="display:flex;gap:5px;align-items:center"><div class="vis-b" style="animation-play-state:running"></div><div class="vis-b" style="animation-play-state:running"></div><div class="vis-b" style="animation-play-state:running"></div></div><div class="empty-t" style="margin-top:12px">Memuat lirik...</div></div>';
+  const d=await api(`/api/lyrics/${id}`);
+  if(d?.lyrics) document.getElementById('lyrics-body').innerHTML=`<div class="lyrics-text">${d.lyrics}</div>`;
+  else document.getElementById('lyrics-body').innerHTML='<div class="empty"><div class="empty-ico">🎵</div><div class="empty-t">Lirik tidak tersedia</div></div>';
+}
+
+function toggleLyrics() {
+  const p=document.getElementById('lyrics-panel'); p.classList.toggle('on');
+  document.getElementById('p-lyrics-btn').classList.toggle('on',p.classList.contains('on'));
+  if(document.getElementById('queue-panel').classList.contains('on')){ document.getElementById('queue-panel').classList.remove('on'); document.getElementById('p-queue-btn').classList.remove('on'); }
+  if(p.classList.contains('on')&&APP.currentSong) loadLyrics(APP.currentSong.id);
+}
+
+// ── SEARCH ──
+const GENRES = [
+  {name:'Pop',glyph:'🎤',bg:'linear-gradient(135deg,#111,#1e3a5f)'},
+  {name:'R&B',glyph:'🎶',bg:'linear-gradient(135deg,#111,#3b0764)'},
+  {name:'Hip-Hop',glyph:'🎧',bg:'linear-gradient(135deg,#111,#431407)'},
+  {name:'Rock',glyph:'🎸',bg:'linear-gradient(135deg,#111,#450a0a)'},
+  {name:'Indie',glyph:'🌿',bg:'linear-gradient(135deg,#111,#052e16)'},
+  {name:'Jazz',glyph:'🎺',bg:'linear-gradient(135deg,#111,#422006)'},
+  {name:'Electronic',glyph:'🎛',bg:'linear-gradient(135deg,#111,#172554)'},
+  {name:'Folk',glyph:'🪕',bg:'linear-gradient(135deg,#111,#2c1810)'},
+  {name:'K-Pop',glyph:'✨',bg:'linear-gradient(135deg,#111,#500724)'},
+  {name:'Dangdut',glyph:'🎵',bg:'linear-gradient(135deg,#111,#052e1c)'},
+  {name:'Klasik',glyph:'🎻',bg:'linear-gradient(135deg,#111,#2a1800)'},
+  {name:'Metal',glyph:'🤘',bg:'linear-gradient(135deg,#111,#1c1c1c)'},
+];
+
+function initSearch() {
+  const g=document.getElementById('genre-grid'); if(g.innerHTML) return;
+  g.innerHTML = GENRES.map(x=>`
+    <div class="genre-card" style="background:${x.bg}" onclick="searchGenre('${x.name.toLowerCase()}')">
+      <div class="genre-name">${x.name}</div>
+      <div class="genre-glyph">${x.glyph}</div>
+    </div>`).join('');
+}
+
+let srTimeout=null;
+function handleSearch(q) {
+  clearTimeout(srTimeout);
+  if(q.length<2){ document.getElementById('search-res').style.display='none'; document.getElementById('genre-section').style.display='block'; return; }
+  srTimeout=setTimeout(()=>doSearch(q),380);
+}
+
+async function doSearch(q) {
+  go('search');
+  document.getElementById('genre-section').style.display='none';
+  document.getElementById('search-res').style.display='block';
+  const d=await api(`/api/search?q=${encodeURIComponent(q)}`);
+  if (!d) return;
+  const sc=document.getElementById('sres-songs'), ac=document.getElementById('sres-artists');
+  if(d.songs?.length){ sc.innerHTML=`<div class="sec-title" style="margin-bottom:14px">Lagu</div><div class="song-list" id="sr-songs-list"></div>`; renderSongList('sr-songs-list',d.songs); }
+  else sc.innerHTML='';
+  if(d.artists?.length){ ac.innerHTML=`<div class="sec-title" style="margin-bottom:14px">Artis</div><div class="scroll-row" id="sr-art-row"></div>`; renderCards('sr-art-row', d.artists.map(a=>({...a,title:a.name,cover:a.image,id:a.id,artist:a.genre?.join(', ')||''})));  }
+  else ac.innerHTML='';
+}
+
+async function searchGenre(g) {
+  document.getElementById('genre-section').style.display='none';
+  document.getElementById('search-res').style.display='block';
+  const d=await api(`/api/songs?genre=${g}&limit=30`);
+  if(!d) return;
+  document.getElementById('sres-songs').innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div class="sec-title">${g.charAt(0).toUpperCase()+g.slice(1)}</div><div class="sec-more" onclick="clearSearch()">← Kembali</div></div><div class="song-list" id="genre-res"></div>`;
+  renderSongList('genre-res', d.songs||[]);
+  document.getElementById('sres-artists').innerHTML='';
+}
+
+function clearSearch() { document.getElementById('search-inp').value=''; document.getElementById('search-res').style.display='none'; document.getElementById('genre-section').style.display='block'; }
+
+// ── COLLECTION ──
+function loadCollection() {
+  renderSongList('liked-list', APP.liked);
+  document.getElementById('liked-empty').style.display = APP.liked.length?'none':'flex';
+  document.getElementById('liked-list').style.display = APP.liked.length?'flex':'none';
+  renderSongList('recent-list', APP.recent.slice(0,30));
+  const pg=document.getElementById('plist-grid');
+  const lists=[{name:'Mix Untukmu',cover:'https://picsum.photos/seed/mix1/156/156',fn:'loadSmartPlaylist()'},{name:'Daily Mix',cover:'https://picsum.photos/seed/mix2/156/156',fn:'loadDailyMix()'},{name:'Chill',cover:'https://picsum.photos/seed/mix3/156/156',fn:"loadMoodPlaylist('chill')"},{name:'Fokus',cover:'https://picsum.photos/seed/mix4/156/156',fn:"loadMoodPlaylist('focus')"},{name:'Energik',cover:'https://picsum.photos/seed/mix5/156/156',fn:"loadMoodPlaylist('energetic')"},{name:'Malam',cover:'https://picsum.photos/seed/mix6/156/156',fn:"loadMoodPlaylist('romantic')"}];
+  pg.innerHTML=lists.map(l=>`<div class="card" onclick="${l.fn}"><div class="card-img"><img class="card-img-inner" src="${l.cover}" alt=""><div class="card-play"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M5 3l14 9-14 9V3z"/></svg></div></div><div class="card-title">${l.name}</div></div>`).join('');
+}
+
+function switchTab(el, tab) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on')); el.classList.add('on');
+  ['liked','recent','playlists'].forEach(t=>document.getElementById('col-'+t).style.display='none');
+  document.getElementById('col-'+tab).style.display='block';
+}
+
+// ── PROFILE ──
+async function loadProfile() {
+  const d=await api(`/api/stats/${APP.userId}`) || {};
+  const sr=document.getElementById('stat-row');
+  sr.innerHTML=[
+    {v:d.total_songs||APP.recent.length,k:'Lagu Diputar'},
+    {v:d.total_hours||'0',k:'Jam Mendengar'},
+    {v:APP.liked.length,k:'Disukai'},
+    {v:d.favorite_mood?d.favorite_mood.charAt(0).toUpperCase()+d.favorite_mood.slice(1):'Chill',k:'Mood Favorit'},
+  ].map(s=>`<div class="stat-box"><div class="stat-val">${s.v}</div><div class="stat-key">${s.k}</div></div>`).join('');
+
+  let ta=d.top_artists||[], tg=d.top_genres||[];
+  if(!ta.length&&APP.recent.length){ const c={}; APP.recent.forEach(s=>{if(s.artist)c[s.artist]=(c[s.artist]||0)+1;}); ta=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([n,c])=>({name:n,count:c})); }
+  if(!tg.length&&APP.recent.length){ const c={}; APP.recent.forEach(s=>{if(s.genre)c[s.genre]=(c[s.genre]||0)+1;}); tg=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([n,c])=>({name:n,count:c})); }
+
+  const mx=ta[0]?.count||1;
+  document.getElementById('top-artists').innerHTML=ta.length?ta.map((a,i)=>`<div class="top-item"><div class="top-n">${i+1}</div><div class="top-name">${a.name}</div><div class="top-bar-bg"><div class="top-bar-fill" style="width:${(a.count/mx)*100}%"></div></div></div>`).join(''):'<div style="padding:12px;font-size:13px;color:var(--text-3)">Belum ada data</div>';
+  const mg=tg[0]?.count||1;
+  document.getElementById('top-genres').innerHTML=tg.length?tg.map((g,i)=>`<div class="top-item"><div class="top-n">${i+1}</div><div class="top-name">${g.name.charAt(0).toUpperCase()+g.name.slice(1)}</div><div class="top-bar-bg"><div class="top-bar-fill" style="width:${(g.count/mg)*100}%"></div></div></div>`).join(''):'<div style="padding:12px;font-size:13px;color:var(--text-3)">Belum ada data</div>';
+}
+
+// ── PLAYLISTS ──
+async function loadSmartPlaylist() {
+  const d=await api(`/api/playlist/smart/${APP.userId}`);
+  if(!d) return; APP.queue=d.songs||[]; APP.queueIndex=0;
+  if(APP.queue.length){ playSong(APP.queue[0]); toast(`Mix Untukmu · ${APP.queue.length} lagu`); }
+}
+async function loadDailyMix() {
+  if(APP.homeData?.daily_mix?.length){ APP.queue=[...APP.homeData.daily_mix]; APP.queueIndex=0; playSong(APP.queue[0]); toast(`Daily Mix · ${APP.queue.length} lagu`); }
+  else loadSmartPlaylist();
+}
+async function loadMoodPlaylist(m) {
+  const d=await api(`/api/songs?mood=${m}&limit=25`);
+  if(!d?.songs?.length) return; APP.queue=d.songs; APP.queueIndex=0;
+  playSong(APP.queue[0]); toast(`${MOODS[m]?.label||m} · ${APP.queue.length} lagu`);
+}
+async function loadRadio() {
+  if(!APP.currentSong){ toast('Putar lagu dulu'); return; }
+  const d=await api(`/api/radio/${APP.currentSong.id}`);
+  if(!d?.songs?.length) return; APP.queue=d.songs;
+  toast(`Radio · ${APP.queue.length} lagu`); updateQueuePanel();
+}
+function playAlbum(a) { if(a.songs?.length){ APP.queue=a.songs; APP.queueIndex=0; playSong(APP.queue[0]); toast(`${a.name} · ${a.songs.length} lagu`); } }
+function playHeroPlaylist() { if(APP.homeData?.recommended?.length){ APP.queue=[...APP.homeData.recommended]; APP.queueIndex=0; playSong(APP.queue[0]); } }
+
+// ── CONTEXT ──
+function showCtx(e, song) {
+  e.preventDefault(); APP.ctxSong=song;
+  const m=document.getElementById('ctx');
+  m.classList.add('on');
+  m.style.left=Math.min(e.clientX,window.innerWidth-190)+'px';
+  m.style.top=Math.min(e.clientY,window.innerHeight-210)+'px';
+}
+function hideCtx() { document.getElementById('ctx').classList.remove('on'); APP.ctxSong=null; }
+function ctxPlay() { if(APP.ctxSong)playSong(APP.ctxSong); hideCtx(); }
+function ctxNext() { if(APP.ctxSong){APP.queue.unshift(APP.ctxSong);toast('Putar selanjutnya');} hideCtx(); }
+function ctxQueue() { if(APP.ctxSong)addQ(APP.ctxSong); hideCtx(); }
+function ctxRadio() { if(APP.ctxSong){playSong(APP.ctxSong);setTimeout(loadRadio,600);} hideCtx(); }
+function ctxLike() { if(APP.ctxSong)likeSong(APP.ctxSong); hideCtx(); }
+document.addEventListener('click', e=>{ if(!e.target.closest('#ctx')) hideCtx(); });
+
+// ── RESET ──
+function resetOnboarding() {
+  selArtists=[]; selSingers=[]; obStep=1;
+  document.querySelectorAll('.ob-chip').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('ob1').style.display='block';
+  document.getElementById('ob2').style.display='none';
+  document.getElementById('pip1').classList.add('on');
+  document.getElementById('pip2').classList.remove('on');
+  document.getElementById('ob-back').style.display='none';
+  document.getElementById('ob-next').textContent='Lanjut';
+  document.getElementById('ob-next').disabled=true;
+  document.getElementById('app').classList.remove('on');
+  const ob=document.getElementById('ob'); ob.style.opacity='0'; ob.style.display='flex';
+  setTimeout(()=>{ ob.style.transition='opacity .4s'; ob.style.opacity='1'; },10);
+  updateObUI();
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e=>{
+  if(e.target.tagName==='INPUT') return;
+  if(e.code==='Space'){ e.preventDefault(); togglePlay(); }
+  if(e.shiftKey&&e.code==='ArrowRight') nextSong();
+  if(e.shiftKey&&e.code==='ArrowLeft') prevSong();
+  if(e.code==='KeyL') toggleLike();
+  if(e.code==='KeyQ') toggleQueue();
+});
+
+// ── INIT ──
+aud.volume = APP.volume;
+initOb();
+</script>
+</body>
+</html>
